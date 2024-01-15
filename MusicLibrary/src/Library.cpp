@@ -1,6 +1,8 @@
 #define NOMINMAX
 #include <iomanip>
 #include <string>
+#include <algorithm> // For std::transform
+#include <cctype>    // For std::tolower
 #include "Library.h"
 void clearCinFlag()
 {
@@ -174,7 +176,9 @@ void Library::sortMenu()
 void Library::searchMenu()
 {
   // To implement menu for searching music
-  // searchForMusic();
+  searchForMusic();
+  std::cin.clear();                                                   // Clear the error flag
+  std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear the input buffer
 }
 void Library::addMenu()
 {
@@ -273,4 +277,41 @@ void Library::deleteMusic()
 void Library::searchForMusic()
 {
   // Implementation for searching for music
+    std::string searchTerm;
+    std::cout << "Enter search term: ";
+    getline(std::cin, searchTerm);
+
+    // Convert search term to lowercase for case-insensitive comparison
+    std::transform(searchTerm.begin(), searchTerm.end(), searchTerm.begin(),
+        [](unsigned char c) { return std::tolower(c); });
+
+    std::cout << "Search Results:" << std::endl;
+    bool found = false;
+    Music* currentMusic = head; // Assuming head points to the start of the music linked list
+
+    while (currentMusic != nullptr) {
+        std::string title = currentMusic->viewTitle();
+        std::string artist = currentMusic->viewArtist();
+        std::string genre = currentMusic->viewGenre();
+
+        // Convert attributes to lowercase
+        std::transform(title.begin(), title.end(), title.begin(), ::tolower);
+        std::transform(artist.begin(), artist.end(), artist.begin(), ::tolower);
+        std::transform(genre.begin(), genre.end(), genre.begin(), ::tolower);
+
+        // Check if the search term is in any of the attributes
+        if (title.find(searchTerm) != std::string::npos ||
+            artist.find(searchTerm) != std::string::npos ||
+            genre.find(searchTerm) != std::string::npos) {
+            std::cout << "Title: " << currentMusic->viewTitle() << ", Artist: " << currentMusic->viewArtist()
+                << ", Genre: " << currentMusic->viewGenre() << std::endl;
+            found = true;
+        }
+
+        currentMusic = currentMusic->nextMusic; // Move to the next music item
+    }
+
+    if (!found) {
+        std::cout << "No music found matching the search term." << std::endl;
+    }
 }
