@@ -3,6 +3,8 @@
     "",
     "\\MusicLibrary",
     "\\MusicLibrary\\build",
+    "\\MusicLibrary\\build\\MusicLibrary.tlog",
+    "\\MusicLibrary\\Debug",
     "\\MusicLibrary\\src"
   ],
   "SelectedNode": "\\MusicLibrary.sln",

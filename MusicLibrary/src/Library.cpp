@@ -3,6 +3,7 @@
 #include <string>
 #include <algorithm> // For std::transform
 #include <cctype>    // For std::tolower
+#include <vector>
 #include "Library.h"
 void clearCinFlag()
 {
@@ -120,6 +121,7 @@ bool Library::userMenu()
   {
   case 1:
     playMusic();
+    break;
   case 2:
     sortMenu();
     break;
@@ -258,10 +260,55 @@ void Library::addMusic()
   pushBack(music);
 }
 
+
 void Library::playMusic()
 {
-  // Implementation for playing music
-  // reuse search music function, then increment playcount
+    // Implementation for playing music
+    // reuse search music function, then increment playcount
+    std::vector<Music*> searchResults = searchForMusic();
+    if (searchResults.empty()) {
+        std::cout << "No music found matching the search term." << std::endl;
+        return;
+    }
+
+    std::cout << "Enter the number of the song to play (or 0 to exit to user menu): ";
+    int selection;
+    std::cin >> selection;
+
+    if (selection == 0) {
+        return; // User chooses to exit to user menu
+    }
+
+    if (selection < 1 || selection > searchResults.size()) {
+        std::cout << "Invalid selection." << std::endl;
+        return; // Invalid selection, exit the function
+    }
+
+    Music* currentMusic = searchResults[selection - 1];
+
+    // Playback loop
+    while (currentMusic != nullptr) {
+        currentMusic->incrementPlayCount(); //increment playcount
+        std::cout << "Playing " << currentMusic->viewTitle() << " by " << currentMusic->viewArtist() << std::endl;
+
+        std::cout << "Enter 'N' for next song or 'S' to stop: ";
+        char command;
+        std::cin >> command;
+
+        if (command == 'N' || command == 'n') {
+            currentMusic = currentMusic->nextMusic;
+            if (currentMusic == nullptr) {
+                std::cout << "End of the playlist." << std::endl;
+                break; // Reached the end of the playlist
+            }
+        }
+        else if (command == 'S' || command == 's') {
+            break; // Stop playback
+        }
+        else {
+            std::cout << "Invalid command. Please enter 'N' for next or 'S' to stop." << std::endl;
+        }
+    }
 }
 
 void Library::updateMusicMetadata()
@@ -274,9 +321,9 @@ void Library::deleteMusic()
   // Implementation for deleting music record
 }
 
-void Library::searchForMusic()
+std::vector<Music*> Library::searchForMusic()
 {
-  // Implementation for searching for music
+    // Implementation for searching music
     std::string searchTerm;
     std::cout << "Enter search term: ";
     getline(std::cin, searchTerm);
@@ -285,10 +332,11 @@ void Library::searchForMusic()
     std::transform(searchTerm.begin(), searchTerm.end(), searchTerm.begin(),
         [](unsigned char c) { return std::tolower(c); });
 
-    std::cout << "Search Results:" << std::endl;
-    bool found = false;
-    Music* currentMusic = head; // Assuming head points to the start of the music linked list
+    std::vector<Music*> searchResults;
+    Music* currentMusic = head;
+    int index = 1;
 
+    std::cout << "Search Results:" << std::endl;
     while (currentMusic != nullptr) {
         std::string title = currentMusic->viewTitle();
         std::string artist = currentMusic->viewArtist();
@@ -303,15 +351,14 @@ void Library::searchForMusic()
         if (title.find(searchTerm) != std::string::npos ||
             artist.find(searchTerm) != std::string::npos ||
             genre.find(searchTerm) != std::string::npos) {
-            std::cout << "Title: " << currentMusic->viewTitle() << ", Artist: " << currentMusic->viewArtist()
-                << ", Genre: " << currentMusic->viewGenre() << std::endl;
-            found = true;
+            std::cout << index << ": " << currentMusic->viewTitle() << ", " << currentMusic->viewArtist()
+                << ", " << currentMusic->viewGenre() << std::endl;
+            searchResults.push_back(currentMusic);
+            index++;
         }
 
         currentMusic = currentMusic->nextMusic; // Move to the next music item
     }
 
-    if (!found) {
-        std::cout << "No music found matching the search term." << std::endl;
-    }
+    return searchResults;
 }

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include "MusicList.h"
 
 #ifdef _WIN32
@@ -29,6 +30,6 @@ private:
   void addMusic();
   void deleteMusic();
   void updateMusicMetadata();
-  void searchForMusic();
+  std::vector<Music*> searchForMusic();
   void clearScreen();
 };
