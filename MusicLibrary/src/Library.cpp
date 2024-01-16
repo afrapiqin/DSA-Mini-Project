@@ -190,12 +190,12 @@ void Library::addMenu()
 void Library::removeMenu()
 {
   // To implement menu for removing music from the list
-  // deleteMusic();
+  deleteMusic();
 }
 void Library::updateMenu()
 {
   // To implement menu for updating music metadata
-  // updateMusicMetadata();
+  updateMusicMetadata();
 }
 
 void Library::viewLibrary(int limit)
@@ -313,12 +313,91 @@ void Library::playMusic()
 
 void Library::updateMusicMetadata()
 {
-  // Implementation for updating existing music
+  std::string updateTitle;
+std::cout << "Enter the title of the music you want to update: ";
+std::getline(std::cin, updateTitle);
+
+// Convert updateTitle to lowercase for case-insensitive comparison
+std::transform(updateTitle.begin(), updateTitle.end(), updateTitle.begin(),
+    [](unsigned char c) { return std::tolower(c); });
+
+Music* currentMusic = head;
+
+while (currentMusic != nullptr) {
+    std::string title = currentMusic->viewTitle();
+
+    // Convert title to lowercase
+    std::transform(title.begin(), title.end(), title.begin(), ::tolower);
+
+    // Check if the music title matches the updateTitle
+    if (title == updateTitle) {
+        std::string newTitle, newArtist, newGenre;
+
+        // Get the updated information from the user
+        std::cout << "Enter new title: ";
+        std::getline(std::cin, newTitle);
+        std::cout << "Enter new artist: ";
+        std::getline(std::cin, newArtist);
+        std::cout << "Enter new genre: ";
+        std::getline(std::cin, newGenre);
+
+        // Update the metadata of the current music
+        currentMusic->addMetadata(newTitle, newArtist, newGenre);
+        std::cout << "Music updated successfully." << std::endl;
+        return;
+    }
+
+    currentMusic = currentMusic->nextMusic; // Move to the next music item
+}
+
+// If the loop completes, the music was not found
+std::cout << "Music with title \"" << updateTitle << "\" not found." << std::endl;
+
 }
 
 void Library::deleteMusic()
 {
-  // Implementation for deleting music record
+   std::string deleteTitle;
+ std::cout << "Enter the title of the music you want to delete: ";
+ std::getline(std::cin, deleteTitle);
+
+ // Convert deleteTitle to lowercase for case-insensitive comparison
+ std::transform(deleteTitle.begin(), deleteTitle.end(), deleteTitle.begin(),
+     [](unsigned char c) { return std::tolower(c); });
+
+ Music* currentMusic = head;
+ Music* prevMusic = nullptr;
+
+ while (currentMusic != nullptr) {
+     std::string title = currentMusic->viewTitle();
+
+     // Convert title to lowercase
+     std::transform(title.begin(), title.end(), title.begin(), ::tolower);
+
+     // Check if the music title matches the deleteTitle
+     if (title == deleteTitle) {
+         // Update pointers to bypass the current music node
+         if (prevMusic) {
+             prevMusic->nextMusic = currentMusic->nextMusic;
+         }
+         else {
+             head = currentMusic->nextMusic;
+         }
+
+         // Delete the current music node
+         delete currentMusic;
+
+         std::cout << "Music deleted successfully." << std::endl;
+         return;
+     }
+
+     prevMusic = currentMusic;
+     currentMusic = currentMusic->nextMusic; // Move to the next music item
+ }
+
+ // If the loop completes, the music was not found
+ std::cout << "Music with title \"" << deleteTitle << "\" not found." << std::endl;
+
 }
 
 std::vector<Music*> Library::searchForMusic()
