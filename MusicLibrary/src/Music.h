@@ -1,6 +1,6 @@
 #include <iostream>
 
-#define MAX_STRING_DISPLAY 22
+#define MAX_STRING_DISPLAY 15
 std::string shortenAndAppendEllipsis(const std::string &input, int length);
 
 class Music
