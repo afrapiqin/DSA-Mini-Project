@@ -47,8 +47,11 @@ char Library::chooseRole()
   case 2:
     return 'u';
   default:
-    return 'u';
+    std::cout << "Invalid selection! Please try again..." << std::endl;
+    std::cin.get();
   }
+
+  return -1;
 }
 
 bool Library::creatorMenu()
@@ -79,7 +82,6 @@ bool Library::creatorMenu()
     break;
   case 3:
     viewTopMusic();
-
     break;
   case 4:
     addMusic();
@@ -98,6 +100,7 @@ bool Library::creatorMenu()
     break;
   default:
     std::cout << "Invalid selection! Please try again..." << std::endl;
+    std::cin.get();
     creatorMenu();
   }
   return true;
@@ -171,16 +174,15 @@ void Library::sortMenu()
     break;
   default:
     std::cout << "Invalid selection! Please try again..." << std::endl;
+    std::cin.get();
     sortMenu();
   }
 }
 
 void Library::searchMenu()
 {
-  // To implement menu for searching music
   searchForMusic();
-  std::cin.clear();                                                   // Clear the error flag
-  std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear the input buffer
+  clearCinFlag();
 }
 void Library::addMenu()
 {
@@ -189,12 +191,10 @@ void Library::addMenu()
 }
 void Library::removeMenu()
 {
-  // To implement menu for removing music from the list
   deleteMusic();
 }
 void Library::updateMenu()
 {
-  // To implement menu for updating music metadata
   updateMusicMetadata();
 }
 
@@ -260,184 +260,202 @@ void Library::addMusic()
   pushBack(music);
 }
 
-
 void Library::playMusic()
 {
-    // Implementation for playing music
-    // reuse search music function, then increment playcount
-    std::vector<Music*> searchResults = searchForMusic();
-    if (searchResults.empty()) {
-        std::cout << "No music found matching the search term." << std::endl;
-        return;
+  std::vector<Music *> searchResults = searchForMusic();
+  if (searchResults.empty())
+  {
+    std::cout << "No music found matching the search term." << std::endl;
+    return;
+  }
+
+  std::cout << "Enter the number of the song to play (or 0 to exit to user menu): ";
+  int selection;
+  std::cin >> selection;
+
+  if (selection == 0)
+  {
+    return; // User chooses to exit to user menu
+  }
+
+  if (selection < 1 || selection > searchResults.size())
+  {
+    std::cout << "Invalid selection." << std::endl;
+    return; // Invalid selection, exit the function
+  }
+
+  Music *currentMusic = searchResults[selection - 1];
+
+  // Playback loop
+  while (currentMusic != nullptr)
+  {
+    currentMusic->incrementPlayCount(); // increment playcount
+    std::cout << "Playing " << currentMusic->viewTitle() << " by " << currentMusic->viewArtist() << std::endl;
+
+    std::cout << "Enter 'N' for next song or 'S' to stop: ";
+    char command;
+    std::cin >> command;
+
+    if (command == 'N' || command == 'n')
+    {
+      currentMusic = currentMusic->nextMusic;
+      if (currentMusic == nullptr)
+      {
+        std::cout << "End of the playlist." << std::endl;
+        break; // Reached the end of the playlist
+      }
     }
-
-    std::cout << "Enter the number of the song to play (or 0 to exit to user menu): ";
-    int selection;
-    std::cin >> selection;
-
-    if (selection == 0) {
-        return; // User chooses to exit to user menu
+    else if (command == 'S' || command == 's')
+    {
+      break; // Stop playback
     }
-
-    if (selection < 1 || selection > searchResults.size()) {
-        std::cout << "Invalid selection." << std::endl;
-        return; // Invalid selection, exit the function
+    else
+    {
+      std::cout << "Invalid command. Please enter 'N' for next or 'S' to stop." << std::endl;
     }
-
-    Music* currentMusic = searchResults[selection - 1];
-
-    // Playback loop
-    while (currentMusic != nullptr) {
-        currentMusic->incrementPlayCount(); //increment playcount
-        std::cout << "Playing " << currentMusic->viewTitle() << " by " << currentMusic->viewArtist() << std::endl;
-
-        std::cout << "Enter 'N' for next song or 'S' to stop: ";
-        char command;
-        std::cin >> command;
-
-        if (command == 'N' || command == 'n') {
-            currentMusic = currentMusic->nextMusic;
-            if (currentMusic == nullptr) {
-                std::cout << "End of the playlist." << std::endl;
-                break; // Reached the end of the playlist
-            }
-        }
-        else if (command == 'S' || command == 's') {
-            break; // Stop playback
-        }
-        else {
-            std::cout << "Invalid command. Please enter 'N' for next or 'S' to stop." << std::endl;
-        }
-    }
+  }
 }
 
 void Library::updateMusicMetadata()
 {
   std::string updateTitle;
-std::cout << "Enter the title of the music you want to update: ";
-std::getline(std::cin, updateTitle);
+  std::cout << "Enter the title of the music you want to update: ";
+  std::getline(std::cin, updateTitle);
 
-// Convert updateTitle to lowercase for case-insensitive comparison
-std::transform(updateTitle.begin(), updateTitle.end(), updateTitle.begin(),
-    [](unsigned char c) { return std::tolower(c); });
+  // Convert updateTitle to lowercase for case-insensitive comparison
+  std::transform(updateTitle.begin(), updateTitle.end(), updateTitle.begin(),
+                 [](unsigned char c)
+                 { return std::tolower(c); });
 
-Music* currentMusic = head;
+  Music *currentMusic = head;
 
-while (currentMusic != nullptr) {
+  while (currentMusic != nullptr)
+  {
     std::string title = currentMusic->viewTitle();
 
     // Convert title to lowercase
     std::transform(title.begin(), title.end(), title.begin(), ::tolower);
 
     // Check if the music title matches the updateTitle
-    if (title == updateTitle) {
-        std::string newTitle, newArtist, newGenre;
+    if (title == updateTitle)
+    {
+      std::string newTitle, newArtist, newGenre;
 
-        // Get the updated information from the user
-        std::cout << "Enter new title: ";
-        std::getline(std::cin, newTitle);
-        std::cout << "Enter new artist: ";
-        std::getline(std::cin, newArtist);
-        std::cout << "Enter new genre: ";
-        std::getline(std::cin, newGenre);
+      // Get the updated information from the user
+      std::cout << "Enter new title: ";
+      std::getline(std::cin, newTitle);
+      std::cout << "Enter new artist: ";
+      std::getline(std::cin, newArtist);
+      std::cout << "Enter new genre: ";
+      std::getline(std::cin, newGenre);
 
-        // Update the metadata of the current music
-        currentMusic->addMetadata(newTitle, newArtist, newGenre);
-        std::cout << "Music updated successfully." << std::endl;
-        return;
+      // Update the metadata of the current music
+      currentMusic->addMetadata(newTitle, newArtist, newGenre);
+      std::cout << "Music updated successfully." << std::endl;
+      return;
     }
 
     currentMusic = currentMusic->nextMusic; // Move to the next music item
-}
+  }
 
-// If the loop completes, the music was not found
-std::cout << "Music with title \"" << updateTitle << "\" not found." << std::endl;
-
+  // If the loop completes, the music was not found
+  std::cout << "Music with title \"" << updateTitle << "\" not found." << std::endl;
+  std::cin.get();
 }
 
 void Library::deleteMusic()
 {
-   std::string deleteTitle;
- std::cout << "Enter the title of the music you want to delete: ";
- std::getline(std::cin, deleteTitle);
+  std::string deleteTitle;
+  std::cout << "Enter the title of the music you want to delete: ";
+  std::getline(std::cin, deleteTitle);
 
- // Convert deleteTitle to lowercase for case-insensitive comparison
- std::transform(deleteTitle.begin(), deleteTitle.end(), deleteTitle.begin(),
-     [](unsigned char c) { return std::tolower(c); });
+  // Convert deleteTitle to lowercase for case-insensitive comparison
+  std::transform(deleteTitle.begin(), deleteTitle.end(), deleteTitle.begin(),
+                 [](unsigned char c)
+                 { return std::tolower(c); });
 
- Music* currentMusic = head;
- Music* prevMusic = nullptr;
+  Music *currentMusic = head;
+  Music *prevMusic = nullptr;
 
- while (currentMusic != nullptr) {
-     std::string title = currentMusic->viewTitle();
+  while (currentMusic != nullptr)
+  {
+    std::string title = currentMusic->viewTitle();
 
-     // Convert title to lowercase
-     std::transform(title.begin(), title.end(), title.begin(), ::tolower);
+    // Convert title to lowercase
+    std::transform(title.begin(), title.end(), title.begin(), ::tolower);
 
-     // Check if the music title matches the deleteTitle
-     if (title == deleteTitle) {
-         // Update pointers to bypass the current music node
-         if (prevMusic) {
-             prevMusic->nextMusic = currentMusic->nextMusic;
-         }
-         else {
-             head = currentMusic->nextMusic;
-         }
+    // Check if the music title matches the deleteTitle
+    if (title == deleteTitle)
+    {
+      // Update pointers to bypass the current music node
+      if (prevMusic)
+      {
+        prevMusic->nextMusic = currentMusic->nextMusic;
+      }
+      else
+      {
+        head = currentMusic->nextMusic;
+      }
 
-         // Delete the current music node
-         delete currentMusic;
+      // Delete the current music node
+      delete currentMusic;
 
-         std::cout << "Music deleted successfully." << std::endl;
-         return;
-     }
-
-     prevMusic = currentMusic;
-     currentMusic = currentMusic->nextMusic; // Move to the next music item
- }
-
- // If the loop completes, the music was not found
- std::cout << "Music with title \"" << deleteTitle << "\" not found." << std::endl;
-
-}
-
-std::vector<Music*> Library::searchForMusic()
-{
-    // Implementation for searching music
-    std::string searchTerm;
-    std::cout << "Enter search term: ";
-    getline(std::cin, searchTerm);
-
-    // Convert search term to lowercase for case-insensitive comparison
-    std::transform(searchTerm.begin(), searchTerm.end(), searchTerm.begin(),
-        [](unsigned char c) { return std::tolower(c); });
-
-    std::vector<Music*> searchResults;
-    Music* currentMusic = head;
-    int index = 1;
-
-    std::cout << "Search Results:" << std::endl;
-    while (currentMusic != nullptr) {
-        std::string title = currentMusic->viewTitle();
-        std::string artist = currentMusic->viewArtist();
-        std::string genre = currentMusic->viewGenre();
-
-        // Convert attributes to lowercase
-        std::transform(title.begin(), title.end(), title.begin(), ::tolower);
-        std::transform(artist.begin(), artist.end(), artist.begin(), ::tolower);
-        std::transform(genre.begin(), genre.end(), genre.begin(), ::tolower);
-
-        // Check if the search term is in any of the attributes
-        if (title.find(searchTerm) != std::string::npos ||
-            artist.find(searchTerm) != std::string::npos ||
-            genre.find(searchTerm) != std::string::npos) {
-            std::cout << index << ": " << currentMusic->viewTitle() << ", " << currentMusic->viewArtist()
-                << ", " << currentMusic->viewGenre() << std::endl;
-            searchResults.push_back(currentMusic);
-            index++;
-        }
-
-        currentMusic = currentMusic->nextMusic; // Move to the next music item
+      std::cout << "Music deleted successfully." << std::endl;
+      return;
     }
 
-    return searchResults;
+    prevMusic = currentMusic;
+    currentMusic = currentMusic->nextMusic; // Move to the next music item
+  }
+
+  // If the loop completes, the music was not found
+  std::cout << "Music with title \"" << deleteTitle << "\" not found." << std::endl;
+  std::cin.get();
+}
+
+std::vector<Music *> Library::searchForMusic()
+{
+  // Implementation for searching music
+  std::string searchTerm;
+  std::cout << "Enter search term: ";
+  getline(std::cin, searchTerm);
+
+  // Convert search term to lowercase for case-insensitive comparison
+  std::transform(searchTerm.begin(), searchTerm.end(), searchTerm.begin(),
+                 [](unsigned char c)
+                 { return std::tolower(c); });
+
+  std::vector<Music *> searchResults;
+  Music *currentMusic = head;
+  int index = 1;
+
+  std::cout << "Search Results:" << std::endl;
+  while (currentMusic != nullptr)
+  {
+    std::string title = currentMusic->viewTitle();
+    std::string artist = currentMusic->viewArtist();
+    std::string genre = currentMusic->viewGenre();
+
+    // Convert attributes to lowercase
+    std::transform(title.begin(), title.end(), title.begin(), ::tolower);
+    std::transform(artist.begin(), artist.end(), artist.begin(), ::tolower);
+    std::transform(genre.begin(), genre.end(), genre.begin(), ::tolower);
+
+    // Check if the search term is in any of the attributes
+    if (title.find(searchTerm) != std::string::npos ||
+        artist.find(searchTerm) != std::string::npos ||
+        genre.find(searchTerm) != std::string::npos)
+    {
+      std::cout << index << ": " << currentMusic->viewTitle() << ", " << currentMusic->viewArtist()
+                << ", " << currentMusic->viewGenre() << std::endl;
+      searchResults.push_back(currentMusic);
+      index++;
+    }
+
+    currentMusic = currentMusic->nextMusic; // Move to the next music item
+  }
+
+  if (searchResults.empty())
+    std::cout << "Not found!" << std::endl;
+  return searchResults;
 }
